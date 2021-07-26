@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Toolnado/tg-weather-bot/internal/openweathermap"
 	"github.com/Toolnado/tg-weather-bot/internal/telegram"
 	"github.com/Toolnado/tg-weather-bot/internal/weather-api"
 	"github.com/joho/godotenv"
@@ -25,7 +26,9 @@ func main() {
 		log.Println("apikey not found")
 	}
 
-	weatherService := weather.NewWeatherService(apiKey)
+	openWeatherMapService := openweathermap.NewOpenWeatherMapService(apiKey)
+
+	weatherService := weather.NewWeatherService(openWeatherMapService)
 	weatherBot := telegram.NewBot(weatherService, token)
 
 	weatherBot.Start()

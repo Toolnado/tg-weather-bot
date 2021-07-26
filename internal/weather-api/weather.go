@@ -1,31 +1,27 @@
 package weather
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/Toolnado/tg-weather-bot/model"
 )
 
+type WeatherApi interface {
+	GetWeather(city string) (weatherData model.WeatherData, err error)
+}
+
 type WeatherService struct {
-	apiKey string
+	Weather WeatherApi
 }
 
-func NewWeatherService(apiKey string) *WeatherService {
-	return &WeatherService{apiKey: apiKey}
+func NewWeatherService(weather WeatherApi) *WeatherService {
+	return &WeatherService{
+		Weather: weather,
+	}
 }
 
-func (w *WeatherService) GetWeather(city string) (weatherData model.WeatherData, err error) {
-	var data model.WeatherData
-	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?q=" + city + "&APPID=" + w.apiKey)
+func (o *WeatherService) GetWeather(city string) (weatherData model.WeatherData, err error) {
+	data, err := o.Weather.GetWeather(city)
 
 	if err != nil {
-		return data, err
-	}
-
-	defer resp.Body.Close()
-
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return data, err
 	}
 
