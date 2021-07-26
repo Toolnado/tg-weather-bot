@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Toolnado/tg-weather-bot/internal/model"
+	"github.com/Toolnado/tg-weather-bot/model"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 

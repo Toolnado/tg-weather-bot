@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Toolnado/tg-weather-bot/internal/model"
+	"github.com/Toolnado/tg-weather-bot/model"
 )
 
 type WeatherService struct {
