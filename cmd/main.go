@@ -2,35 +2,31 @@ package main
 
 import (
 	"log"
+	"os"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/Toolnado/tg-weather-bot/internal/telegram"
+	"github.com/Toolnado/tg-weather-bot/internal/weather-api"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI("MyAwesomeBotToken")
-	if err != nil {
-		log.Panic(err)
+	if err := godotenv.Load(".env"); err != nil {
+		log.Print(err)
 	}
 
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates, err := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message == nil { // ignore any non-Message Updates
-			continue
-		}
-
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		bot.Send(msg)
+	token, ok := os.LookupEnv("TOKEN")
+	if !ok {
+		log.Println("token not found")
 	}
+
+	apiKey, ok := os.LookupEnv("OPENWEATHERMAPAPIKEY")
+
+	if !ok {
+		log.Println("apikey not found")
+	}
+
+	weatherService := weather.NewWeatherService(apiKey)
+	weatherBot := telegram.NewBot(weatherService, token)
+
+	weatherBot.Start()
 }
