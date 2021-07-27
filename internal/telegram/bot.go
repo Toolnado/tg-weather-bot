@@ -67,8 +67,9 @@ func (b *Bot) Start() {
 			bot.Send(msg)
 			continue
 		}
+
 		temp := openweathermap.TransformTemp(data.Main.Kelvin)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprint(temp))
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Cредняя температура: %d", temp))
 		msg.ReplyToMessageID = update.Message.MessageID
 
 		bot.Send(msg)
