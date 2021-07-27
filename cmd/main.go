@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
 
 	"github.com/Toolnado/tg-weather-bot/internal/openweathermap"
 	"github.com/Toolnado/tg-weather-bot/internal/telegram"
@@ -26,10 +27,16 @@ func main() {
 		log.Println("apikey not found")
 	}
 
-	openWeatherMapService := openweathermap.NewOpenWeatherMapService(apiKey)
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
 
+	openWeatherMapService := openweathermap.NewOpenWeatherMapService(apiKey)
 	weatherService := weather.NewWeatherService(openWeatherMapService)
 	weatherBot := telegram.NewBot(weatherService, token)
 
-	weatherBot.Start()
+	go weatherBot.Start()
+
+	<-stopChan
+	log.Println("Stoped bot...")
+	log.Println("Bot has stoped")
 }

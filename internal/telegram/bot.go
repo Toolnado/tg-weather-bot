@@ -16,63 +16,67 @@ type BotGetWeather interface {
 type Bot struct {
 	Weather BotGetWeather
 	token   string
+	bot     *tgbotapi.BotAPI
 }
 
 func NewBot(weather BotGetWeather, token string) *Bot {
+	bot, err := tgbotapi.NewBotAPI(token)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &Bot{
 		Weather: weather,
 		token:   token,
+		bot:     bot,
 	}
 }
 
 func (b *Bot) Start() {
-	bot, err := tgbotapi.NewBotAPI(b.token)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	// bot.Debug = true
+	log.Printf("Authorized on account %s", b.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates, err := b.bot.GetUpdatesChan(u)
 
 	if err != nil {
-		log.Print(err)
+		log.Fatal(err)
 	}
 
 	for update := range updates {
+		text := ""
+		id := update.Message.Chat.ID
+
 		if update.Message == nil {
 			continue
 		}
-
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		data, err := b.CheckWeather(update.Message.Text)
 
 		if err != nil {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprint(err))
-			msg.ReplyToMessageID = update.Message.MessageID
-			bot.Send(msg)
+			log.Fatal(err)
+			continue
+		}
+
+		if update.Message.Text == "/start" {
+			text = fmt.Sprintf("Здравствуйте, %s. Введите название места на английском языке.", update.Message.From.UserName)
+			b.SendMessage(id, text)
+			continue
 		}
 
 		if data.Main.Kelvin == 0 {
-			text := "Город не найден"
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
-			msg.ReplyToMessageID = update.Message.MessageID
-			bot.Send(msg)
+			text = "Город не найден"
+			b.SendMessage(id, text)
 			continue
 		}
 
 		temp := openweathermap.TransformTemp(data.Main.Kelvin)
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Cредняя температура: %d", temp))
-		msg.ReplyToMessageID = update.Message.MessageID
+		text = fmt.Sprintf("Cредняя температура в %s: %d ℃", data.Name, temp)
 
-		bot.Send(msg)
+		b.SendMessage(id, text)
 	}
 }
 
@@ -83,4 +87,10 @@ func (b *Bot) CheckWeather(city string) (weather model.WeatherData, err error) {
 	}
 
 	return data, nil
+}
+
+func (b *Bot) SendMessage(id int64, text string) {
+	msg := tgbotapi.NewMessage(id, text)
+	b.bot.Send(msg)
+	log.Println("Send message")
 }
