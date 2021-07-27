@@ -13,10 +13,15 @@ type BotGetWeather interface {
 	GetWeather(city string) (weatherData model.WeatherData, err error)
 }
 
+type TranslateClient interface {
+	Translate(city, language string) string
+}
+
 type Bot struct {
-	Weather BotGetWeather
-	token   string
-	bot     *tgbotapi.BotAPI
+	Weather    BotGetWeather
+	Translater TranslateClient
+	token      string
+	bot        *tgbotapi.BotAPI
 }
 
 func NewBot(weather BotGetWeather, token string) *Bot {
