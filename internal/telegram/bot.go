@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Toolnado/tg-weather-bot/internal/openweathermap"
 	"github.com/Toolnado/tg-weather-bot/model"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -66,8 +67,8 @@ func (b *Bot) Start() {
 			bot.Send(msg)
 			continue
 		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprint(data.Main.Kelvin))
+		temp := openweathermap.TransformTemp(data.Main.Kelvin)
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprint(temp))
 		msg.ReplyToMessageID = update.Message.MessageID
 
 		bot.Send(msg)

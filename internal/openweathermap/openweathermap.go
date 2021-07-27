@@ -33,3 +33,11 @@ func (o *OpenWeatherMapService) GetWeather(city string) (weatherData model.Weath
 
 	return data, nil
 }
+
+func TransformTemp(kelvin float64) int {
+
+	kelvinConst := 273.15
+	temp := kelvin - kelvinConst
+
+	return int(temp)
+}
